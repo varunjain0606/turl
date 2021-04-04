@@ -1,0 +1,228 @@
+consumes:
+  - application/json
+produces:
+  - application/json
+schemes:
+  - http
+  - https
+swagger: '2.0'
+info:
+  title: TinyUrl API Service
+  version: 1.0.0
+  description: >-
+    This is the documentation for TinyUrl API Service.<br>
+host: api.shortener.com
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+paths:
+  /v1/tinyUrl/url:
+    post:
+      tags:
+        - urlShortener
+      summary: Create shortnened URL from original URL.
+      description: Create shortnened URL from original URL.
+      security:
+        - Bearer: []
+      operationId: CreateShortenedUrl
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          description: URL payload
+          schema:
+            $ref: '#/definitions/create_shorturl_request'
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            required: [status, message]
+            properties:
+              status:
+                type: string
+                description: Job status
+                x-nullable: false
+                enum:
+                  - COMPLETED
+                  - FAILED
+                example: INPROGRESS
+              message:
+                type: string
+                description: Response message of the API
+                x-nullable: false
+                example: 'Generated URL'
+              shortenUrl:
+                type: string
+                description: Shortened URL.
+                example: 'abdasdsf1'
+        400:
+          $ref: '#/responses/StandardError-400'
+        401:
+          $ref: '#/responses/StandardError-401'
+        409:
+          $ref: '#/responses/StandardError-409'
+        500:
+          $ref: '#/responses/StandardError-500'
+        default:
+          description: Unexpected error
+  /v1/tinyUrl/url/{shortenUrl}:
+    get:
+      tags:
+        - urlShortener
+      summary: Get original URL from shortened URL.
+      description: Get original URL from shortened URL.
+      security:
+        - Bearer: []
+      operationId: GetShortenedUrl
+      produces:
+        - application/json
+      parameters:
+        - name: shortenUrl
+          in: path
+          required: true
+          description: shortened URL to fetch the original URL.
+          type: integer
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            required: [status, originalurl]
+            properties:
+              status:
+                type: string
+                description: Get URL status
+                x-nullable: false
+                enum:
+                  - COMPLETED
+                  - FAILED
+                example: COMPLETED
+              originalurl:
+                type: string
+                description: original URL against the shortened URL.
+                example: 'www.google.com/asfdnsdf'
+        400:
+          $ref: '#/responses/StandardError-400'
+        401:
+          $ref: '#/responses/StandardError-401'
+        404:
+          $ref: '#/responses/StandardError-404'
+        500:
+          $ref: '#/responses/StandardError-500'
+        default:
+          description: Unexpected error
+definitions:
+  Error:
+    description: Error response
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+        x-nullable: false
+      message:
+        type: string
+        x-nullable: false
+    required:
+      - message
+    example:
+      code: 1994
+      message: Out of cheese error! Please reboot the Universe
+  create_shorturl_request:
+    title: ShortUrl payload
+    type: object
+    description: Initial payload with shorten URL
+    x-nullable: false
+    properties:
+      originalUrl:
+        type: string
+        description: original url.
+        example: 'www.google.com/nafsdfsdgfsfg'
+        x-nullable: false
+      expiryDays:
+        description: Expiry time of a URL
+        type: integer
+        format: int32
+        example: 30
+        x-nullable: false
+        default: 30
+    required:
+      - originalUrl
+responses:
+  StandardError-400:
+    description: Bad Request
+    schema:
+      $ref: '#/definitions/Error'
+    examples:
+      application/json:
+        code: 400
+        message: Bad Request or Input
+  StandardError-401:
+    description: Unauthorized
+    schema:
+      $ref: '#/definitions/Error'
+    examples:
+      application/json:
+        code: 401
+        message: Unauthorized access attempt
+  StandardError-403:
+    description: Forbidden
+    schema:
+      $ref: '#/definitions/Error'
+    examples:
+      application/json:
+        code: 403
+        message: Access to this resource forbidden
+  StandardError-404:
+    description: Not found
+    schema:
+      $ref: '#/definitions/Error'
+    examples:
+      application/json:
+        code: 404
+        message: The resource was not found
+  StandardError-405:
+    description: Method not allowed
+    schema:
+      $ref: '#/definitions/Error'
+    examples:
+      application/json:
+        code: 405
+        message: The HTTP method is not allowed for this resource
+  StandardError-409:
+    description: Conflict
+    schema:
+      $ref: '#/definitions/Error'
+    examples:
+      application/json:
+        code: 409
+        message: Conflict. Resource already exists
+  StandardError-500:
+    description: Internal server error
+    schema:
+      $ref: '#/definitions/Error'
+    examples:
+      application/json:
+        code: 500
+        message: Internal server error
+  StandardError-501:
+    description: Not Implemented error
+    schema:
+      $ref: '#/definitions/Error'
+    examples:
+      application/json:
+        code: 501
+        message: Not Implemented error
+  StandardError-503:
+    description: Service Unavailable
+    schema:
+      $ref: '#/definitions/Error'
+    examples:
+      application/json:
+        code: 503
+        message: Service Unavailable
